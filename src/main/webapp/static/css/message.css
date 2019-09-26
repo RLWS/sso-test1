@@ -1,0 +1,62 @@
+.mesaul {
+    height: 700px;
+    margin: 0;
+    box-shadow: -2px 0 2px #5F6368,
+    0 0px 0 blue,
+    2px 0px 2px #5F6368,
+    0px 0px 0px yellow;
+    border-radius: 4px;
+    background: #EEEEEE;
+}
+.mesaul>li{
+    list-style-type: none;
+    margin-bottom: 5px;
+    cursor: pointer;
+}
+.mesaul li>img{
+    border-radius: 50%;
+    height: 44px;
+    width: 44px;
+    display: inline-block;
+}
+.mesaul li h4{
+    display: inline-block;
+}
+.mesaul li h4>a{
+    margin-left: 10px;
+    width: 105px;
+    display: -webkit-box;-webkit-line-clamp: 1;-webkit-box-orient: vertical;overflow: hidden;
+}
+/*---------------------------*/
+.ri{
+    box-shadow: 0 0 10px #dadada;
+    height: 690px;
+    margin-top: 5px;
+    border-radius: 5px;
+}
+.ri .area{
+    height: 460px;
+    overflow: scroll;
+    background: white;
+}
+.ri .area img{
+    height: 40px;
+    width: 40px;
+    display: inline-block;
+    vertical-align: top;
+}
+
+.ri .area pre{
+    max-width: 70% ;
+    display: inline-block;
+    vertical-align: top;
+}
+.ri .rig{
+    text-align: center;
+}
+.ri .rig textarea{
+    margin-top: 5px;
+    resize:none;
+    height: 135px;
+    width: 95%;
+}

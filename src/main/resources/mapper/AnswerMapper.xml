@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.rlws.plant.platform.mapper.AnswerMapper">
+    <resultMap id="userAnswer" type="Answer">
+        <id column="id" property="id"/>
+        <result column="content" property="content"/>
+        <result column="time" property="time"/>
+        <result column="praise" property="praise"/>
+        <result column="user_id" property="user_id"/>
+        <result column="question_id" property="question_id"/>
+        <!-- 一对一关联User -->
+        <association property="user" javaType="User">
+            <id column="user_id" property="id"/>
+            <result column="answer_username" property="username"/>
+        </association>
+        <!-- 一对多关联Reply -->
+        <collection property="replyList" ofType="Reply">
+            <id column="reply_id" property="id"/>
+            <result column="reply_content" property="content"/>
+            <result column="reply_time" property="time"/>
+            <result column="reply_user_id" property="user_id"/>
+            <!-- 一对一关联User -->
+            <association property="user" javaType="User">
+                <id column="reply_user_id" property="id"/>
+                <result column="reply_username" property="username"/>
+            </association>
+        </collection>
+    </resultMap>
+
+    <resultMap id="userAnswerOne" type="Answer">
+        <id column="id" property="id"/>
+        <result column="content" property="content"/>
+        <result column="time" property="time"/>
+        <result column="praise" property="praise"/>
+        <result column="user_id" property="user_id"/>
+        <result column="question_id" property="question_id"/>
+        <!-- 一对一关联User -->
+        <association property="user" javaType="User">
+            <id column="user_id" property="id"/>
+            <result column="answer_username" property="username"/>
+        </association>
+    </resultMap>
+
+    <!-- 根据id获取一条Answer数据 -->
+    <select id="selectAnswerById" parameterType="int" resultType="Answer">
+        select * from answer where id = #{id}
+    </select>
+
+    <!-- 判断用户是否回答过该问题 -->
+    <select id="selectUserAnswerQuestion" parameterType="Answer" resultType="Answer">
+        SELECT answer.* FROM answer WHERE user_id = #{user_id} AND question_id = #{question_id}
+    </select>
+
+    <!-- 插入一条Answer数据 -->
+    <insert id="insertOneAnswer" parameterType="Answer">
+        insert into
+            answer(content,time,praise,user_id,question_id)
+        values
+            (#{content},#{time},#{praise},#{user_id},#{question_id})
+    </insert>
+
+    <!-- 根据AnswerId获取一条Answer数据(optimal)最优答案 -->
+    <select id="selectOptimalAnswerById" parameterType="int" resultMap="userAnswerOne">
+        SELECT
+            answer.*,user.id AS user_id,user.username AS answer_username
+        FROM
+            answer,USER
+        WHERE
+            answer.id = #{id} AND answer.user_id = user.id
+    </select>
+
+    <!-- 根据question_id获取一个List<Answer>数据 -->
+    <select id="selectListAnswerByQuestionId" parameterType="int" resultMap="userAnswer" >
+        SELECT user.username AS reply_username ,adsf.* FROM(
+            SELECT user.username AS answer_username , rlws.* FROM (
+                SELECT
+                    answer.* ,
+                    reply.id AS reply_id,
+                    reply.content AS reply_content,
+                    reply.TIME AS reply_time,
+                    reply.user_id AS reply_user_id
+                FROM
+                    answer LEFT JOIN reply
+                ON
+                    reply.answer_id = answer.id
+                WHERE answer.question_id = #{id}
+            ) rlws , USER
+            WHERE rlws.user_id = user.id
+        ) adsf LEFT JOIN USER
+        ON
+        adsf.reply_user_id = user.id
+        ORDER BY id DESC
+    </select>
+
+    <!-- 更新一条Answer数据 -->
+    <update id="updateOneAnswer" parameterType="Answer">
+        update answer set
+            content = #{content},
+            time = #{time},
+            praise = #{praise}
+        where
+            id = #{id}
+    </update>
+
+    <!-- 删除一条Answer数据 -->
+    <delete id="deleteOneAnswer" parameterType="int">
+        delete from answer where id = #{id}
+    </delete>
+
+</mapper>

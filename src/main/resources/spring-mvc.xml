@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+    <description>Spring MVC Configuration</description>
+
+    <!-- 加载配置属性文件 -->
+    <context:property-placeholder ignore-unresolvable="true" location="classpath:plant-platform.properties"/>
+
+    <!-- 使用 Annotation 自动注册 Bean,只扫描 @Controller -->
+    <context:component-scan base-package="com.rlws.plant.platform.controller" use-default-filters="false">
+        <context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+    </context:component-scan>
+
+    <!-- 默认的注解映射的支持,不能丢,丢了注解就没用了 -->
+    <mvc:annotation-driven />
+
+    <!-- 定义视图文件解析 -->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="${web.view.prefix}"/>
+        <property name="suffix" value="${web.view.suffix}"/>
+    </bean>
+
+    <!-- 静态资源映射 -->
+    <mvc:resources mapping="/static/**" location="/static/" cache-period="31536000"/>
+
+    <!-- 文件上传拦截器,设置最大上传文件大小 10M -->
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <property name="maxUploadSize" value="10485760"/>
+    </bean>
+
+    <!-- 配置拦截器 -->
+    <mvc:interceptors>
+        <!-- 配置登录拦截器 -->
+        <mvc:interceptor>
+            <!-- 拦截所有路径下的请求 -->
+            <mvc:mapping path="/*"/>
+<!--            &lt;!&ndash; 不能对所有请求都拦截了,不然连登录请求会无限循环,所以要除开/login请求 &ndash;&gt;
+            <mvc:exclude-mapping path="/login"/>
+            &lt;!&ndash; 同时也不能对静态资源文件(static)进行拦截,不然css,js文件将会不起作用 &ndash;&gt;
+            <mvc:exclude-mapping path="/static/**"/>-->
+            <bean class="com.rlws.plant.platform.interceptor.UserInterceptor"/>
+        </mvc:interceptor>
+    </mvc:interceptors>
+</beans>

@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.rlws.plant.platform.mapper.QuestionMapper">
+
+    <resultMap id="questionUserCategory" type="Question">
+        <id column="id" property="id"/>
+        <result column="title" property="title"/>
+        <result column="content" property="content"/>
+        <result column="time" property="time"/>
+        <result column="praise" property="praise"/>
+        <result column="category_id" property="category_id"/>
+        <result column="user_id" property="user_id"/>
+        <result column="optimal" property="optimal"/>
+        <result column="urgent" property="urgent"/>
+        <!-- 一对一关联User -->
+        <association property="user" javaType="User">
+            <id column="user_id" property="id"/>
+            <result column="username" property="username"/>
+        </association>
+        <!-- 一对一关联Category -->
+        <association property="category" javaType="Category">
+            <id column="category_id" property="id"/>
+            <result column="category" property="content"/>
+        </association>
+    </resultMap>
+
+    <!-- 向question插入一条数据 -->
+    <insert id="insertOneQuestion" parameterType="Question">
+        insert into
+            question(title,content,time,praise,category_id,user_id,urgent)
+        values
+            (#{title},#{content},#{time},#{praise},#{category_id},#{user_id},#{urgent})
+    </insert>
+
+    <!-- 删除一条Question数据 -->
+    <delete id="delectOneQuestionById" parameterType="int">
+        DELETE FROM question WHERE id = #{id}
+    </delete>
+
+    <!-- 根据id主键来查询一条数据 -->
+    <select id="selectByPrimaryKey" parameterType="int" resultType="Question">
+        select * from question where id=#{id}
+    </select>
+
+    <!-- 获取最新发布的几条数据 -->
+    <select id="selectLimitQuestion" parameterType="int" resultType="Question">
+        select * from question order by time desc limit #{num};
+    </select>
+
+    <!-- 获取最新发布的num条数据 -->
+    <select id="selectLimitTitle" parameterType="int" resultMap="questionUserCategory">
+        SELECT
+            question.*, user.username, category.content
+        FROM
+            question, USER, category
+        WHERE
+            question.user_id = user.id AND question.category_id = category.id
+        ORDER BY question.time
+        DESC LIMIT #{num}
+    </select>
+
+    <!-- 获取最近一周点赞最多的num条数据 -->
+    <select id="selectOneWeekLimitTitle" parameterType="int" resultMap="questionUserCategory">
+        SELECT
+        question.*, user.username, category.content
+        FROM
+        question, USER, category
+        WHERE
+        question.user_id = user.id
+        AND question.category_id = category.id
+        ORDER BY praise
+        DESC LIMIT #{num}
+    </select>
+
+    <!-- 获取最近一个月回答最多的num条数据 -->
+    <select id="selectOneWeekMostAnswerQuestion" resultMap="questionUserCategory">
+        SELECT
+            question.* , user.username , COUNT(question.id) AS num
+        FROM
+            answer,question,USER
+        WHERE
+            answer.question_id = question.id AND user.id = question.user_id AND DATE_SUB(CURDATE(), INTERVAL 90 DAY) &lt;= DATE(question.time)
+        GROUP BY
+            question.id
+        ORDER BY num
+        DESC LIMIT #{num}
+    </select>
+
+    <!-- 查询一条Question详细数据 多表联合查询,查询question,username,category -->
+    <select id="selectQuestionDetailsById" parameterType="int" resultMap="questionUserCategory">
+        SELECT
+            question.*, user.username, category.content as category
+        FROM
+            question, USER, category
+        WHERE
+            question.user_id = user.id AND question.category_id = category.id AND question.id = #{id}
+    </select>
+
+    <!-- 根据最佳答案查询一条Question详细数据 -->
+    <select id="selectQuestionDetailsByAnswerId" parameterType="int" resultMap="questionUserCategory">
+        SELECT
+            question.*, user.username, category.content as category
+        FROM
+            question, USER, category
+        WHERE
+            question.user_id = user.id AND question.category_id = category.id AND question.optimal = #{id}
+    </select>
+
+    <!-- 更新一条question数据 -->
+    <update id="updateOneQuestion" parameterType="Question">
+        update question set
+            title = #{title},
+            content = #{content},
+            time = #{time},
+            praise = #{praise},
+            category_id = #{category_id},
+            user_id = #{user_id},
+            optimal = #{optimal}
+        where
+            id = #{id}
+    </update>
+    
+    <!-- 根据Title模糊查询Question集合 -->
+    <select id="selectQuestionByBlurryTitle" parameterType="java.util.ArrayList" resultMap="questionUserCategory">
+        SELECT
+        question.*, user.username, category.content as category
+        FROM
+        question, USER, category
+        WHERE
+        question.user_id = user.id AND question.category_id = category.id
+        <foreach collection="list" item="str" open="AND (" close=") order by question.time desc" separator="or">
+            title like '%${str}%'
+        </foreach>
+    </select>
+
+    <!-- 根据Title模糊查询Question集合 -->
+    <select id="selectQuestionByBlurryTitleAjax" parameterType="PageVo" resultMap="questionUserCategory">
+        SELECT
+        question.*, user.username, category.content as category
+        FROM
+        question, USER, category
+        WHERE
+        question.user_id = user.id AND question.category_id = category.id
+        <foreach collection="strList" item="str" open="AND (" close=") order by question.time desc limit #{page_start},#{page_size}" separator="or">
+            title like '%${str}%'
+        </foreach>
+    </select>
+
+    <!-- 根据userId查询一个Question集合 -->
+    <select id="selectQuestionByUserId" parameterType="PageVo" resultMap="questionUserCategory">
+        SELECT
+        question.*, user.username, category.content as category
+        FROM
+        question, USER, category
+        WHERE
+        question.user_id = #{id} AND question.user_id = user.id AND question.category_id = category.id
+        order by
+        question.time
+        desc limit
+        #{page_start},#{page_size}
+    </select>
+
+    <!-- 根据categoryId查询一个Question集合的数量Count -->
+    <select id="selectQuestionByCategoryIdCount" parameterType="int" resultType="int">
+        SELECT
+        count(*)
+        FROM
+        question, USER, category
+        WHERE
+        category.id = #{id} AND question.user_id = user.id AND question.category_id = category.id
+        order by
+        question.time
+    </select>
+
+    <!-- 根据categoryId查询一个Question集合 -->
+    <select id="selectQuestionByCategoryId" parameterType="PageVo" resultMap="questionUserCategory">
+        SELECT
+        question.*, user.username, category.content as category
+        FROM
+        question, USER, category
+        WHERE
+        category.id = #{id} AND question.user_id = user.id AND question.category_id = category.id
+        order by
+        question.time
+        desc limit
+        #{page_start},#{page_size}
+    </select>
+    
+    <!-- 根据userId获取该用户的所有问题数量 -->
+    <select id="selectUserAllQuestionByUserId" parameterType="int" resultType="int">
+        SELECT COUNT(id) FROM question WHERE user_id = #{id}
+    </select>
+
+    <!-- 查询出所有未回答的问题 -->
+    <select id="selectQuestionAnswerZero" parameterType="PageVo" resultMap="questionUserCategory">
+        SELECT
+            question.*,user.username,category.content AS category
+        FROM
+            question , USER ,category
+        WHERE
+            question.id NOT IN(
+                SELECT
+                    answer.question_id
+                FROM answer GROUP BY question_id
+            )
+            AND question.user_id = user.id
+            AND category.id = question.category_id
+        ORDER BY
+            question.time
+        limit
+            #{page_start},#{page_size}
+    </select>
+
+    <!-- 查询出所有未回答的问题的数量(count) -->
+    <select id="selectQuestionAnswerZeroCount" resultType="int">
+        SELECT
+            count(question.id)
+        FROM
+            question , USER ,category
+        WHERE
+            question.id NOT IN(
+                SELECT
+                    answer.question_id
+                FROM answer GROUP BY question_id
+            )
+            AND question.user_id = user.id
+            AND category.id = question.category_id
+        ORDER BY
+            question.time
+    </select>
+
+    <!-- 查询出用户回答过的所有问题的数量Count -->
+    <select id="selectUserAllAnswerQuestionCount" parameterType="int" resultType="int">
+        select count(*) from(
+            SELECT
+                answer.id AS answerId , question.* ,user.username
+            FROM
+                answer,question,USER
+            WHERE
+                answer.user_id = #{id} AND question.id = answer.question_id AND user.id = question.user_id
+            GROUP BY question.id
+        ) abc
+    </select>
+
+    <!-- 查询出用户回答过的所有问题 -->
+    <select id="selectUserAllAnswerQuestion" parameterType="PageVo" resultMap="questionUserCategory">
+        SELECT
+            answer.id AS answerId , question.* ,user.username
+        FROM
+            answer,question,USER
+        WHERE
+            answer.user_id = #{id} AND question.id = answer.question_id AND user.id = question.user_id
+        GROUP BY
+            id
+        limit
+            #{page_start},#{page_size}
+    </select>
+
+    <!-- 查询一条问题的回答数量 -->
+    <select id="selectQuestionAnswerCount" parameterType="int" resultType="int">
+        SELECT COUNT(question.id) FROM answer,question WHERE answer.question_id = question.id AND question.id = #{id}
+    </select>
+
+    <!-- 获取所有的question的List -->
+    <select id="selectAllQuestion" parameterType="PageVo" resultMap="questionUserCategory">
+        SELECT
+            question.*, user.username, category.content as category
+        FROM
+            question, USER, category
+        WHERE
+            question.user_id = user.id AND question.category_id = category.id
+        order by
+            question.time
+        desc limit
+            #{page_start},#{page_size}
+    </select>
+
+    <!-- 获取所有的question的数量Count -->
+    <select id="selectAllQuestionCount" parameterType="int" resultType="int">
+        SELECT
+            COUNT(*)
+        FROM
+            question, USER, category
+        WHERE
+            question.user_id = user.id AND question.category_id = category.id
+    </select>
+
+    <!-- 模糊查询Question的Id和Title字段Count -->
+    <select id="selectMoHuQuestionCount" parameterType="String" resultType="int">
+        select count(*) from(
+            SELECT
+                question.*, user.username, category.content  AS category
+            FROM
+                question, USER, category
+            WHERE
+                question.user_id = user.id AND question.category_id = category.id AND question.id LIKE '%${_parameter}%' OR question.title LIKE '%${_parameter}%'
+            GROUP BY
+                question.id
+        ) abc
+    </select>
+
+    <!-- 模糊查询Question的Id和Title字段 -->
+    <select id="selectMoHuQuestion" parameterType="PageVo" resultMap="questionUserCategory">
+        SELECT
+            question.*, user.username, category.content  AS category
+        FROM
+            question, USER, category
+        WHERE
+            question.user_id = user.id AND question.category_id = category.id AND question.id LIKE '%${search}%' OR question.title LIKE '%${search}%'
+        GROUP BY
+            question.id
+        limit
+            #{page_start},#{page_size}
+    </select>
+
+    <!-- 查询最近num天的紧急处理问题 -->
+    <select id="selectUrgentQuestion" parameterType="int" resultMap="questionUserCategory">
+        SELECT
+        question.*, user.username, category.content AS category
+        FROM
+        question, USER, category
+        WHERE
+        question.user_id = user.id
+        AND question.category_id = category.id
+        AND urgent = 1
+        limit #{num}
+    </select>
+
+</mapper>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.rlws.plant.platform.mapper.UserMapper">
+
+    <!-- 查询一条User信息 -->
+    <select id="selectByPrimaryKey" parameterType="java.lang.String" resultType="User">
+        select * from user where email = #{email}
+    </select>
+
+    <!-- 查询一条User信息 -->
+    <select id="selectOneUserById" parameterType="int" resultType="User">
+        select * from user where id = #{id}
+    </select>
+
+    <!-- 修改一条User信息 -->
+    <update id="updateUser" parameterType="User">
+        update user set
+        email = #{email},
+        username = #{username},
+        password = #{password},
+        sex = #{sex},
+        img = #{img},
+        power = #{power},
+        frequency = #{frequency}
+        where
+        id = #{id}
+    </update>
+
+    <!-- 插入一条User信息 -->
+    <insert id="insertOneUser" parameterType="User">
+        insert into user
+            (email,username,password,sex,img,power)
+        values
+            (#{email},#{username},#{password},#{sex},#{img},#{power})
+    </insert>
+
+    <!-- 根据userId获取用户获取最佳回答的数量Count -->
+    <select id="selectUserBestAnswerCount" parameterType="int" resultType="int">
+        SELECT COUNT(*) FROM answer WHERE answer.user_id = #{id} AND answer.id IN(
+	        SELECT optimal FROM question WHERE optimal != 0
+	    )
+    </select>
+
+    <!-- 获取所有的用户的数量Count -->
+    <select id="selectAllUserCount" resultType="int">
+        select count(id) from user;
+    </select>
+
+    <!-- 获取用户的所有数量Ajax -->
+    <select id="selectAllUser" parameterType="PageVo" resultType="User">
+        select * from user limit #{page_start},#{page_size};
+    </select>
+
+    <!-- 删除一条User数据 -->
+    <select id="delectOneUser" parameterType="int">
+        DELETE FROM USER WHERE id = #{id}
+    </select>
+
+    <!-- 模糊查询关键字段Count -->
+    <select id="selectMainUserCount" parameterType="String" resultType="int">
+        SELECT count(*) FROM USER WHERE CONCAT(`id`,`email`,`username`) LIKE '%${_parameter}%';
+    </select>
+
+    <!-- 模糊查询关键字段 -->
+    <select id="selectMainUser" parameterType="PageVo" resultType="User">
+        SELECT * FROM USER WHERE CONCAT(`id`,`email`,`username`) LIKE '%${search}%' limit #{page_start},#{page_size};
+    </select>
+
+    <!-- 获取所有有信息来往的List<User> -->
+    <select id="selectAllMessageUser" parameterType="int" resultType="User">
+        SELECT
+            b.user_id AS id,user.username,user.img
+        FROM (
+            (SELECT j.user_id_j AS user_id FROM (SELECT * FROM message WHERE message.user_id_f = #{id} OR message.user_id_j = #{id}) j WHERE j.user_id_j != #{id} GROUP BY user_id_j)
+            UNION ALL
+            (SELECT f.user_id_f AS user_id FROM (SELECT * FROM message WHERE message.user_id_f = #{id} OR message.user_id_j = #{id}) f WHERE f.user_id_f != #{id} GROUP BY user_id_f)
+            ) b ,USER
+        WHERE b.user_id = user.id GROUP BY b.user_id
+    </select>
+</mapper>

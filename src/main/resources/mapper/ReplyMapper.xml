@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.rlws.plant.platform.mapper.ReplyMapper">
+
+    <!-- 插入一条Reply数据 -->
+    <insert id="insertOneReply" parameterType="Reply">
+        insert into
+            reply(content,time,user_id,answer_id)
+        values
+            (#{content},#{time},#{user_id},#{answer_id})
+    </insert>
+
+    <!-- 根据userId查询该用户的评论数量Count -->
+    <select id="selectUserReplyCount" parameterType="int" resultType="int">
+        SELECT COUNT(*) FROM reply,USER WHERE reply.user_id = user.id AND user.id = #{id}
+    </select>
+
+
+</mapper>

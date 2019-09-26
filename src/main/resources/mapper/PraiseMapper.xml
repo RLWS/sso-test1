@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.rlws.plant.platform.mapper.PraiseMapper">
+
+    <!-- 根据Praise查询是否存在该条数据 -->
+    <select id="selectPraiseByPraise" parameterType="Praise" resultType="Praise">
+        select * from praise where user_id = #{user_id} and answer_id = #{answer_id}
+    </select>
+
+    <!-- 插入一条Praise数据 -->
+    <insert id="insertOnePraise" parameterType="Praise">
+        insert into praise (user_id,answer_id) values (#{user_id},#{answer_id})
+    </insert>
+</mapper>

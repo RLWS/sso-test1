@@ -1,0 +1,26 @@
+.rlws-answer{
+    padding: 10px 20px 10px 20px !important;
+    background: #F5F5F5;
+    border-left-width: 4px;
+    color: #3B4348;
+}
+.rlws-post{
+    padding: 10px 20px 10px 20px !important;
+    background: #D0D0D1;
+    border-left-width: 4px;
+    color: #3B4348;
+}
+.rlws-answer>p{
+    margin: 10px;
+}
+form>button{
+    float: right;
+    margin-left: 20px;
+}
+
+.hentry .jub{
+    float: right;
+}
+.hentry .jub>a{
+    color: #DE5448;
+}

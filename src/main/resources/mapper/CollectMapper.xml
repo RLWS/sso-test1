@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.rlws.plant.platform.mapper.CollectMapper">
+
+    <resultMap id="collectQuestion" type="Collect">
+        <id column="id" property="id"/>
+        <!-- 一对一关联Question表 -->
+        <association property="question" javaType="Question">
+            <id column="question_id" property="id"/>
+            <result column="title" property="title"/>
+            <result column="content" property="content"/>
+            <result column="time" property="time"/>
+            <result column="praise" property="praise"/>
+        </association>
+    </resultMap>
+
+    <!-- 根据Collect查询是否存在该条数据 -->
+    <select id="selectCollectByCollect" parameterType="Collect" resultType="Collect">
+        select * from Collect where user_id = #{user_id} and question_id = #{question_id}
+    </select>
+
+    <!-- 插入一条Collect数据 -->
+    <insert id="insertOneCollect" parameterType="Collect">
+        insert into Collect (user_id,question_id) values (#{user_id},#{question_id})
+    </insert>
+
+    <!-- 删除一条Collect数据 -->
+    <delete id="deleteOneCollect" parameterType="int">
+        DELETE FROM collect WHERE id = #{id}
+    </delete>
+
+    <!-- 根据userId查询List<Collect>的数量Count -->
+    <select id="selectCollectByUserIdCount" parameterType="int" resultType="int">
+        SELECT
+            count(collect.id)
+        FROM
+            collect ,question
+        WHERE
+            question_id = question.id AND collect.user_id = #{id}
+    </select>
+
+    <!-- 根据userId查询List<Collect> -->
+    <select id="selectCollectByUserId" parameterType="PageVo" resultMap="collectQuestion">
+        SELECT
+            collect.id,question.id AS question_id ,question.title ,question.content,question.time,question.praise
+        FROM
+            collect ,question
+        WHERE
+            question_id = question.id AND collect.user_id = #{id}
+        ORDER BY
+            collect.id
+        DESC LIMIT #{page_start},#{page_size}
+    </select>
+</mapper>

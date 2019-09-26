@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.rlws.plant.platform.mapper.MessageMapper">
+
+    <resultMap id="OneMessage" type="Message">
+        <id column="id" property="id"/>
+        <result column="content" property="content"/>
+        <result column="time" property="time"/>
+        <result column="user_id_j" property="user_id_j"/>
+        <result column="user_id_f" property="user_id_f"/>
+        <result column="handle" property="handle"/>
+        <!-- 一对一关联User表(发送者) -->
+        <association property="user_f" javaType="User">
+            <id column="user_ff" property="id"/>
+        </association>
+        <!-- 一对一关联User表(接受者) -->
+        <association property="user_j" javaType="User">
+            <id column="user_jj" property="id"/>
+        </association>
+    </resultMap>
+
+    <!-- 插入一条Message数据 -->
+    <insert id="insertOneMessage" parameterType="Message">
+        insert into
+            Message(content,time,user_id_j,user_id_f,handle)
+        values
+            (#{content},#{time},#{user_id_j},#{user_id_f},#{handle});
+    </insert>
+
+    <!-- 根据用户的Id获取所有Message -->
+    <select id="getUserAllMessage" parameterType="Message" resultMap="OneMessage">
+        SELECT
+	        t1.*,t2.id AS user_ff,t3.id AS user_jj
+        FROM
+	        message AS t1
+        INNER JOIN USER AS t2 ON t1.user_id_f = t2.id
+        INNER JOIN USER AS t3 ON t1.user_id_j = t3.id
+        WHERE
+            (user_id_j = #{user_id_j} AND user_id_f = #{user_id_f})
+        OR
+            (user_id_j = #{user_id_f} AND user_id_f = #{user_id_j})
+        GROUP BY
+            time
+    </select>
+</mapper>
