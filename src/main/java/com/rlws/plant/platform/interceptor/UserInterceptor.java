@@ -10,8 +10,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.net.URLEncoder;
 import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.Map;
 
 @PropertySource("classpath:/plant-platform.properties")
 public class UserInterceptor implements HandlerInterceptor {
@@ -35,8 +33,12 @@ public class UserInterceptor implements HandlerInterceptor {
                 }
             }
             System.out.println(httpServletRequest.getRequestURL().toString() + condition);
+            String urlT = httpServletRequest.getRequestURL().toString();
+            if (condition.toString()!=""){
+                urlT += "?" + condition;
+            }
             //请求的url编码
-            String encodeURL = URLEncoder.encode(httpServletRequest.getRequestURL().toString() + "?" + condition, "utf-8");
+            String encodeURL = URLEncoder.encode(urlT, "utf-8");
             //页面重定向到注册中心
             httpServletResponse.sendRedirect("http://" + url + "/index?requestUrl=" + encodeURL);
             System.out.println(url + "/index?requestUrl=" + encodeURL);
@@ -45,11 +47,11 @@ public class UserInterceptor implements HandlerInterceptor {
         return true;
     }
 
-    public void postHandle(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object o, ModelAndView modelAndView) throws Exception {
+    public void postHandle(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object o, ModelAndView modelAndView) {
 
     }
 
-    public void afterCompletion(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object o, Exception e) throws Exception {
+    public void afterCompletion(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object o, Exception e) {
 
     }
 }
