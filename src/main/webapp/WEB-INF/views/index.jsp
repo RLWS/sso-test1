@@ -74,7 +74,7 @@
     <div class="search-area container">
         <h3 class="search-header">善问者，如攻坚木，先其易者，后其节目。</h3>
         <p class="search-tag-line">如果您有任何疑问,您可以在下方询问或查找您需要的内容!</p>
-
+        <input id="token" type="hidden" value="${token}">
         <form id="search-form" class="search-form clearfix" method="get" action="search_result">
             <input class="search-term required" type="text" id="searchTitle" name="searchTitle" placeholder="您可以在这里输入查找内容..."
                    title="请点击右边'Search'按钮进行查找!"/>
@@ -295,6 +295,9 @@
         CanvasParticle(config);
     }
     $(function () {
+
+        alert("token::"+$("#token").val())
+
         $(".demo2").bootstrapNews({
             newsPerPage: 5,
             autoplay: true,
@@ -316,6 +319,7 @@
             window.history.pushState('forword',null,'#');
             window.history.forward(1);
         }
+
     })
 </script>
 
